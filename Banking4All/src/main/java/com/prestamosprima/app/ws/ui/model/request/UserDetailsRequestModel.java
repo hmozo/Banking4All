@@ -1,8 +1,11 @@
 package com.prestamosprima.app.ws.ui.model.request;
 
+import javax.validation.constraints.Email;
+
 public class UserDetailsRequestModel {
 	private String firstName;
 	private String lastName;
+	@Email(message="Email should be valid")
 	private String email;
 	private String password;
 
