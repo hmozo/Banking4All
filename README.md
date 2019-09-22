@@ -16,7 +16,7 @@ Technology stack
 * Host code on GitHub public repo
 
 Others:
-- Testing with JUnit
+- Testing with JUnit/Mockito
 - Use of Java 8 features
 
 
