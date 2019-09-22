@@ -46,7 +46,7 @@ public class AccountController {
 		
 		// get User data
 		@GetMapping(path = "/{accountNumber}/users/{userId}")
-		public ResultRest getUser(@PathVariable Integer accountNumber, @PathVariable String userId, HttpServletRequest request, HttpServletResponse response) {
+		public ResultRest getAccount(@PathVariable Integer accountNumber, @PathVariable String userId, HttpServletRequest request, HttpServletResponse response) {
 			ResultRest resultRest = new ResultRest();
 			AccountRest accountRest= new AccountRest();
 			log.debug(" amount");

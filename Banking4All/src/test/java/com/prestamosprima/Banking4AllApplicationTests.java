@@ -11,6 +11,7 @@ public class Banking4AllApplicationTests {
 
 	@Test
 	public void contextLoads() {
+		
 	}
 
 }
