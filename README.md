@@ -59,8 +59,11 @@ Note: Spring security is not used.
 	    "accountNumber":"11223146",
 	    "amount":"25.3",
 	    "description":"TX 45L"
-  
-  
 
+*********************************************************************************************  
+
+# MODEL SCHEMA
+ 
+![image](https://user-images.githubusercontent.com/55463601/65394981-cca87080-dd94-11e9-9f1d-1a49376533db.png)
 
 
