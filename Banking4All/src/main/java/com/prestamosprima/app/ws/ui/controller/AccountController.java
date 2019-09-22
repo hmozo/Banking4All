@@ -25,6 +25,7 @@ import com.prestamosprima.app.ws.service.UserService;
 import com.prestamosprima.app.ws.shared.dto.AccountDto;
 import com.prestamosprima.app.ws.shared.dto.TransactionDto;
 import com.prestamosprima.app.ws.shared.dto.UserDto;
+import com.prestamosprima.app.ws.shared.exception.BusinessException;
 import com.prestamosprima.app.ws.ui.model.request.TransactionDetailsRequestModel;
 import com.prestamosprima.app.ws.ui.model.request.UserDetailsRequestModel;
 import com.prestamosprima.app.ws.ui.model.response.AccountRest;
@@ -46,41 +47,43 @@ public class AccountController {
 		
 		// get User data
 		@GetMapping(path = "/{accountNumber}/users/{userId}")
-		public ResultRest getAccount(@PathVariable Integer accountNumber, @PathVariable String userId, HttpServletRequest request, HttpServletResponse response) {
+		public ResultRest getAccount(@PathVariable Integer accountNumber, @PathVariable String userId, HttpServletRequest request, HttpServletResponse response) throws BusinessException {
 			ResultRest resultRest = new ResultRest();
 			AccountRest accountRest= new AccountRest();
 			log.debug(" amount");
 			//if valid token
-			if(authorizationService.isUserAuthorized(request, response, userId)) {
+			try {
+				authorizationService.isUserAuthorized(request, response, userId);
 				AccountDto accountDto= accountService.getAccount(accountNumber);
 				BeanUtils.copyProperties(accountDto, accountRest);
 				resultRest.setData(accountRest);
 				resultRest.setStatus(Response.SC_OK);
-				resultRest.setMessages("Acccount " + accountRest.getAccountNumber() + " found");
-			}else {
-				resultRest.setStatus(Response.SC_FORBIDDEN);
-				resultRest.setMessages("User not authorized");
+				resultRest.setMessage("Acccount " + accountRest.getAccountNumber() + " found");
+			}catch (BusinessException e) {
+				e.printStackTrace();
+				return e.getResult();
 			}
 			return resultRest;
 		}
 		
 		//Deposit money
 		@PostMapping(path = "/deposit")
-		public ResultRest deposit(@Validated @RequestBody TransactionDetailsRequestModel transactionDetailsRequest, HttpServletRequest request, HttpServletResponse response) {
+		public ResultRest deposit(@Validated @RequestBody TransactionDetailsRequestModel transactionDetailsRequest, HttpServletRequest request, HttpServletResponse response) throws BusinessException {
 			ResultRest resultRest = new ResultRest();
 			TransactionRest transactionRest= new TransactionRest();
 			log.debug("Deposit amount");
 			//if valid token, user authorized
-			if(authorizationService.isUserAuthorized(request, response, transactionDetailsRequest.getUserId())) {
+			try {
+				authorizationService.isUserAuthorized(request, response, transactionDetailsRequest.getUserId());
 				TransactionDto transactionDto= accountService.deposit(transactionDetailsRequest.getAccountNumber(), transactionDetailsRequest.getAmount(), transactionDetailsRequest.getDescription());
 				BeanUtils.copyProperties(transactionDto, transactionRest);
 				transactionRest.setAccountNumber(transactionDto.getAccount().getAccountNumber());
 				resultRest.setData(transactionRest);
 				resultRest.setStatus(Response.SC_OK);
-				resultRest.setMessages("Transaction " + transactionRest.getId() + " (" + transactionRest.getDescription() + ")" + " created");
-			}else {
-				resultRest.setStatus(Response.SC_FORBIDDEN);
-				resultRest.setMessages("User not authorized");
+				resultRest.setMessage("Transaction " + transactionRest.getId() + " (" + transactionRest.getDescription() + ")" + " created");
+			}catch (BusinessException e) {
+				e.printStackTrace();
+				return e.getResult();
 			}
 			
 			return resultRest;
@@ -89,17 +92,22 @@ public class AccountController {
 		
 		//Withdraw money
 		@PostMapping(path = "/withdraw")
-		public ResultRest withdraw(@Validated @RequestBody TransactionDetailsRequestModel transactionDetailsRequest, HttpServletRequest request, HttpServletResponse response) {
+		public ResultRest withdraw(@Validated @RequestBody TransactionDetailsRequestModel transactionDetailsRequest, HttpServletRequest request, HttpServletResponse response) throws BusinessException {
 			ResultRest resultRest = new ResultRest();
 			TransactionRest transactionRest= new TransactionRest();
 			log.debug("Withdraw amount");
 			//if valid token, user authorized
-			if(authorizationService.isUserAuthorized(request, response, transactionDetailsRequest.getUserId())) {
-			TransactionDto transactionDto= accountService.withdraw(transactionDetailsRequest.getAccountNumber(), transactionDetailsRequest.getAmount(), transactionDetailsRequest.getDescription());
-	
-			}else {
-				resultRest.setStatus(Response.SC_FORBIDDEN);
-				resultRest.setMessages("User not authorized");
+			try {
+				authorizationService.isUserAuthorized(request, response, transactionDetailsRequest.getUserId());
+				TransactionDto transactionDto= accountService.withdraw(transactionDetailsRequest.getAccountNumber(), transactionDetailsRequest.getAmount(), transactionDetailsRequest.getDescription());
+				BeanUtils.copyProperties(transactionDto, transactionRest);
+				transactionRest.setAccountNumber(transactionDto.getAccount().getAccountNumber());
+				resultRest.setData(transactionRest);
+				resultRest.setStatus(Response.SC_OK);
+				resultRest.setMessage("Transaction " + transactionRest.getId() + " (" + transactionRest.getDescription() + ")" + " created");
+			}catch (BusinessException e) {
+				e.printStackTrace();
+				return e.getResult();
 			}
 			return resultRest;
 		}

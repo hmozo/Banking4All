@@ -27,6 +27,7 @@ import com.prestamosprima.app.ws.service.UserService;
 import com.prestamosprima.app.ws.shared.Utils;
 import com.prestamosprima.app.ws.shared.dto.AccountDto;
 import com.prestamosprima.app.ws.shared.dto.UserDto;
+import com.prestamosprima.app.ws.shared.exception.BusinessException;
 import com.prestamosprima.app.ws.ui.model.request.UserDetailsRequestModel;
 import com.prestamosprima.app.ws.ui.model.request.UserLoginRequestModel;
 import com.prestamosprima.app.ws.ui.model.response.ResultRest;
@@ -55,15 +56,17 @@ public class UserController {
 		UserRest userRest= new UserRest();
 		log.debug("Getting User");
 		//if valid token
-		if(authorizationService.isUserAuthorized(request, response, userId)) {
-			UserDto userDto= userService.getUser(userId);
-			BeanUtils.copyProperties(userDto, userRest);
-			resultRest.setData(userRest);
-			resultRest.setStatus(Response.SC_OK);
+		try {
+				authorizationService.isUserAuthorized(request, response, userId);
+				UserDto userDto= userService.getUser(userId);
+				BeanUtils.copyProperties(userDto, userRest);
+				resultRest.setData(userRest);
+				resultRest.setStatus(Response.SC_OK);
+				resultRest.setMessage("User authenticated");
 			//if not valid token
-		}else{
-			resultRest.setStatus(Response.SC_FORBIDDEN);
-			resultRest.setMessages("User not authorized");
+		}catch (BusinessException e) {
+			e.printStackTrace();
+			return e.getResult();
 		}
 		return resultRest;
 	}
@@ -78,12 +81,18 @@ public class UserController {
 		BeanUtils.copyProperties(userDetailsRequest, userDto);
 
 		log.debug("Creating User");
-		UserDto createdUserDto = userService.createUserAndAccount(userDto);
+		UserDto createdUserDto = null;
+		try {
+			createdUserDto = userService.createUserAndAccount(userDto);
+		} catch (BusinessException e) {
+			e.printStackTrace();
+			return e.getResult();
+		}
 		BeanUtils.copyProperties(createdUserDto, userRest);
 		
 		resultRest.setData(userRest);
 		resultRest.setStatus(Response.SC_OK);
-		resultRest.setMessages("User " + userRest.getUserId() + " created");
+		resultRest.setMessage("User " + userRest.getUserId() + " created");
 		return resultRest;
 	}
 
@@ -93,12 +102,13 @@ public class UserController {
 		ResultRest resultRest= new ResultRest();
 		log.debug("validating login");
 		// authenticate User
-		if (authenticationService.isUserAuthenticated(userLogin, response)){
+		try {
+			authenticationService.isUserAuthenticated(userLogin, response);
 			resultRest.setStatus(Response.SC_OK);
-			resultRest.setMessages("User authenticated");
-		}else {
-			resultRest.setStatus(Response.SC_FORBIDDEN);
-			resultRest.setMessages("User not authenticated");
+			resultRest.setMessage("User authenticated");
+		} catch (BusinessException e) {
+			e.printStackTrace();
+			return e.getResult();
 		}
 		return resultRest;
 	}

@@ -18,6 +18,7 @@ import com.prestamosprima.app.ws.io.repositories.AccountRepository;
 import com.prestamosprima.app.ws.io.repositories.UserRepository;
 import com.prestamosprima.app.ws.service.AccountService;
 import com.prestamosprima.app.ws.shared.dto.AccountDto;
+import com.prestamosprima.app.ws.shared.exception.BusinessException;
 
 class AccountServiceImplTest {
 
@@ -33,7 +34,7 @@ class AccountServiceImplTest {
 	}
 
 	@Test
-	void testGetAccount() {
+	void testGetAccount() throws BusinessException {
 		
 		PrimaryAccountEntity primaryAccountEntity= new PrimaryAccountEntity();
 		primaryAccountEntity.setId(1L);

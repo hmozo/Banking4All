@@ -3,6 +3,7 @@ package com.prestamosprima.app.ws.service.impl;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import org.apache.catalina.connector.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -23,6 +24,7 @@ import com.prestamosprima.app.ws.shared.Utils;
 import com.prestamosprima.app.ws.shared.dto.AccountDto;
 import com.prestamosprima.app.ws.shared.dto.TransactionDto;
 import com.prestamosprima.app.ws.shared.dto.UserDto;
+import com.prestamosprima.app.ws.shared.exception.BusinessException;
 
 @Service
 public class AccountServiceImpl implements AccountService{
@@ -42,9 +44,11 @@ public class AccountServiceImpl implements AccountService{
 	
 	/**
 	 * Create account
+	 * 
 	 */
 	@Override
-	public PrimaryAccountEntity createAccount(UserDto userDto) {
+	public AccountDto createAccount(UserDto userDto) {
+		AccountDto accountDto= new AccountDto();
 		PrimaryAccountEntity accountEntity= new PrimaryAccountEntity();
 		//if user exists and it doesn't exist account, create account
 		if(userDto!=null && userDto.getAccountNumber()==null) {
@@ -58,7 +62,13 @@ public class AccountServiceImpl implements AccountService{
 			accountEntity= accountRepository.save(accountEntity);
 		}
 		
-		return accountEntity;
+		if(accountEntity==null) {
+			throw new BusinessException(Response.SC_INTERNAL_SERVER_ERROR, "Account not created");
+		}
+		
+		BeanUtils.copyProperties(accountEntity, accountDto);
+		
+		return accountDto;
 	}
 	
 	 private int accountGen() {
@@ -70,8 +80,9 @@ public class AccountServiceImpl implements AccountService{
 		 log.debug("Getting Account");
 		 AccountDto accountDto= new AccountDto();
 		 PrimaryAccountEntity accountEntity= accountRepository.findByAccountNumber(accountNumber);
-		 if (accountEntity==null)
-			 throw new RuntimeException(accountNumber.toString());
+		 
+		 if(accountEntity==null)
+				throw new BusinessException(Response.SC_INTERNAL_SERVER_ERROR, "Account not found");
 		 
 		 BeanUtils.copyProperties(accountEntity, accountDto);
 		 accountDto.setUserId(accountEntity.getUser().getUserId());
@@ -80,7 +91,7 @@ public class AccountServiceImpl implements AccountService{
 
 	@Override
 	@Transactional(readOnly=false, propagation=Propagation.REQUIRED, rollbackFor = Exception.class)
-	public TransactionDto deposit(Integer accountNumber, BigDecimal amount, String description) {
+	public TransactionDto deposit(Integer accountNumber, BigDecimal amount, String description)  {
 		TransactionDto transactionDtoResult= null;
 		//Get the Account
 		PrimaryAccountEntity accountEntity= accountRepository.findByAccountNumber(accountNumber);
@@ -99,13 +110,15 @@ public class AccountServiceImpl implements AccountService{
 			TransactionDto newTransactionDto= new TransactionDto(date, description, amount, accountEntity);
 			transactionDtoResult= transactionService.createTransaction(newTransactionDto);
 	
+		}else {
+			throw new BusinessException(Response.SC_INTERNAL_SERVER_ERROR, "Account not found");
 		}
 		return transactionDtoResult;
 	}
 	
 	@Override
 	@Transactional(readOnly=false, propagation=Propagation.REQUIRED, rollbackFor = Exception.class)
-	public TransactionDto withdraw(Integer accountNumber, BigDecimal amount, String description) {
+	public TransactionDto withdraw(Integer accountNumber, BigDecimal amount, String description)  {
 		TransactionDto transactionDtoResult= null;
 		//Get the Account
 		PrimaryAccountEntity accountEntity= accountRepository.findByAccountNumber(accountNumber);
@@ -117,22 +130,26 @@ public class AccountServiceImpl implements AccountService{
 				log.debug("withdraw amount");
 				//update balance
 				BigDecimal newAccountBalance= accountEntity.getAccountBalance().subtract(amount);
-				
+				accountEntity.setAccountBalance(newAccountBalance);
 				log.debug("create new transaction");
 				//Create Transaction
 				Date date = new Date();
 				BigDecimal negativeAmount= amount.negate();
 				TransactionDto newTransactionDto= new TransactionDto(date, description, negativeAmount, accountEntity);
 				transactionDtoResult= transactionService.createTransaction(newTransactionDto);
+			}else {
+				throw new BusinessException(Response.SC_BAD_REQUEST, "Withdrawal not allowed");
 			}
 			
+		}else {
+			throw new BusinessException(Response.SC_INTERNAL_SERVER_ERROR, "Account not found");
 		}
 		
 		return transactionDtoResult;
 	}
 
 	private boolean isWithdrawalAllowed(BigDecimal currentBalance, BigDecimal overdraft, BigDecimal amount) {
-		Boolean isWithdrawalAllowed= Math.abs(currentBalance.subtract(amount).doubleValue()) <= overdraft.doubleValue();
+		Boolean isWithdrawalAllowed= (currentBalance.subtract(amount).doubleValue()) >= - overdraft.doubleValue();
 		return isWithdrawalAllowed;
 	}
 

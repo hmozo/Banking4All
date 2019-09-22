@@ -6,6 +6,7 @@ import java.util.Date;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.SecurityContextProvider;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import com.prestamosprima.app.ws.io.repositories.UserRepository;
 import com.prestamosprima.app.ws.security.SecurityConstants;
 import com.prestamosprima.app.ws.security.service.AuthenticationService;
 import com.prestamosprima.app.ws.shared.Utils;
+import com.prestamosprima.app.ws.shared.exception.BusinessException;
 import com.prestamosprima.app.ws.ui.model.request.UserLoginRequestModel;
 
 import io.jsonwebtoken.Jwts;
@@ -42,7 +44,9 @@ public class AuthenticationServiceImpl implements AuthenticationService{
 		// If user is correctly authenticated, token is sent within the header
 		if (isAuthenticated) {
 			this.successfulAuthentication(userLogin.getEmail(), response);
-		} 
+		}else {
+			throw new BusinessException(Response.SC_FORBIDDEN, "User not authenticated");
+		}
 		return isAuthenticated;
 	}
 	

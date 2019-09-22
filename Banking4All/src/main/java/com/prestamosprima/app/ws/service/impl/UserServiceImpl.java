@@ -6,6 +6,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
 import org.apache.catalina.User;
+import org.apache.catalina.connector.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -23,6 +24,7 @@ import com.prestamosprima.app.ws.service.UserService;
 import com.prestamosprima.app.ws.shared.Utils;
 import com.prestamosprima.app.ws.shared.dto.AccountDto;
 import com.prestamosprima.app.ws.shared.dto.UserDto;
+import com.prestamosprima.app.ws.shared.exception.BusinessException;
 import com.prestamosprima.app.ws.ui.controller.UserController;
 
 @Service
@@ -52,9 +54,13 @@ public class UserServiceImpl implements UserService {
 		UserEntity userEntityCreated= createUser(userDto);
 		
 		log.debug("Creating PrimaryAccount");
-		PrimaryAccountEntity accountEntityCreated= createAccount(userDto);
+		AccountDto accountDto= createAccount(userDto);
+		PrimaryAccountEntity accountEntityCreated= accountRepository.findById(accountDto.getId()).get();
 		
-		//set Account to the User
+		if(accountEntityCreated==null) {
+			throw new BusinessException(Response.SC_INTERNAL_SERVER_ERROR, "Account not created");
+		}
+		//set created Account to the User
 		userEntityCreated.setAccount(accountEntityCreated);
 		
 		UserDto returnUserDto= new UserDto();
@@ -67,9 +73,10 @@ public class UserServiceImpl implements UserService {
 
 	
 
-	private UserEntity createUser(UserDto userDto) {
+	private UserEntity createUser(UserDto userDto){
 		//if user exists, throws exception
-		if(userRepository.findByEmail(userDto.getEmail())!=null) throw new RuntimeException("Record already exists with email: " + userDto.getEmail());
+		if(userRepository.findByEmail(userDto.getEmail())!=null) 
+			throw new BusinessException(Response.SC_BAD_REQUEST, "Record already exists with email: " + userDto.getEmail());
 		
 		UserEntity userEntity= new UserEntity();
 		BeanUtils.copyProperties(userDto, userEntity);
@@ -88,33 +95,41 @@ public class UserServiceImpl implements UserService {
 		//Creating User
 		log.debug("Saving User");
 		UserEntity userEntityStored= userRepository.save(userEntity);
+		
+		if(userEntityStored==null) {
+			throw new BusinessException(Response.SC_INTERNAL_SERVER_ERROR, "User not created");
+		}
+		
 		return userEntityStored;
 		
 	}
 	
-	private PrimaryAccountEntity createAccount(UserDto userDto) {
+	private AccountDto createAccount(UserDto userDto)  {
 		//Creating Account
 		log.debug("Creating Account");
-		PrimaryAccountEntity accountEntity= accountService.createAccount(userDto);
+		AccountDto accountDto= accountService.createAccount(userDto);
 		
-		return accountEntity;
+		return accountDto;
 		
 	}
 	
 	
 	/**
 	 * Get user
+	 * @throws BusinessException 
 	 */
 	@Override
-	public UserDto getUser(String userId) {
+	public UserDto getUser(String userId)  {
 		log.debug("Getting User");
 		UserDto userDto= new UserDto();
 		UserEntity userEntity= userRepository.findByUserId(userId);
 		
-		if (userEntity==null) 
-			throw new RuntimeException(userId);
+		if(userEntity==null) {
+			throw new BusinessException(Response.SC_INTERNAL_SERVER_ERROR, "User not found");
+		}
 		
 		BeanUtils.copyProperties(userEntity, userDto);
+		userDto.setAccountNumber(userEntity.getAccount().getAccountNumber());
 		
 		return userDto;
 	}

@@ -3,7 +3,7 @@ package com.prestamosprima.app.ws.ui.model.response;
 public class ResultRest {
 	private Object data;
 	private Integer status;
-	private String messages;
+	private String message;
 
 	public Object getData() {
 		return data;
@@ -21,12 +21,12 @@ public class ResultRest {
 		this.status = status;
 	}
 
-	public String getMessages() {
-		return messages;
+	public String getMessage() {
+		return message;
 	}
 
-	public void setMessages(String messages) {
-		this.messages = messages;
+	public void setMessage(String messages) {
+		this.message = messages;
 	}
 
 }

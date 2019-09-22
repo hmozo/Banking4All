@@ -3,10 +3,12 @@ package com.prestamosprima.app.ws.security.service.impl;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.catalina.connector.Response;
 import org.springframework.stereotype.Service;
 
 import com.prestamosprima.app.ws.security.SecurityConstants;
 import com.prestamosprima.app.ws.security.service.AuthorizationService;
+import com.prestamosprima.app.ws.shared.exception.BusinessException;
 
 import io.jsonwebtoken.Jwts;
 
@@ -19,7 +21,8 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 		
 		///check the header
 		if (token==null || !token.startsWith(SecurityConstants.TOKEN_PREFIX)) {
-			return Boolean.FALSE;
+			//return Boolean.FALSE;
+			throw new BusinessException(Response.SC_FORBIDDEN, "User not authenticated");
 		}
 		
 		token= token.replace(SecurityConstants.TOKEN_PREFIX, "");
@@ -29,9 +32,13 @@ public class AuthorizationServiceImpl implements AuthorizationService {
 			.getBody()
 			.getSubject();
 		
+		Boolean isAuthorized= user.equals(userId);
 		
+		if(!isAuthorized) {
+			throw new BusinessException(Response.SC_FORBIDDEN, "User not authenticated");
+		}
 		
-		return user.equals(userId);
+		return isAuthorized;
 	}
 
 }

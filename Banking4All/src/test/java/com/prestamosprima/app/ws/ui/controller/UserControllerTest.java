@@ -18,6 +18,7 @@ import com.prestamosprima.app.ws.security.service.AuthorizationService;
 import com.prestamosprima.app.ws.security.service.impl.AuthorizationServiceImpl;
 import com.prestamosprima.app.ws.service.UserService;
 import com.prestamosprima.app.ws.shared.dto.UserDto;
+import com.prestamosprima.app.ws.shared.exception.BusinessException;
 import com.prestamosprima.app.ws.ui.model.response.ResultRest;
 import com.prestamosprima.app.ws.ui.model.response.UserRest;
 
@@ -44,7 +45,7 @@ class UserControllerTest {
 	}
 
 	@Test
-	void testGetUser() {
+	void testGetUser() throws BusinessException {
 		UserDto userDto= new UserDto();
 		userDto.setId(1L);
 		userDto.setUserId("HF45HFD");
@@ -55,12 +56,23 @@ class UserControllerTest {
 		userDto.setEncryptedPassword("GSEASDG4");
 		userDto.setAccountNumber(4561226);
 		
-		when(userService.getUser(Mockito.anyString()))
-			.thenReturn(userDto);
+		try {
+			when(userService.getUser(Mockito.anyString()))
+				.thenReturn(userDto);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		when(authorizationService.isUserAuthorized(request, response, ""))
 			.thenReturn(Boolean.TRUE);
 			
-		ResultRest resultRest= userController.getUser("", request, response);
+		ResultRest resultRest= new ResultRest();;
+		try {
+			resultRest = userController.getUser("", request, response);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		assertNotNull(resultRest.getData());
 		assertEquals("sergey@test.com", ((UserRest)resultRest.getData()).getEmail());
