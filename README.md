@@ -35,27 +35,27 @@ Note: Spring security is not used.
     
  * (POST) /users/login                                 #to sign in a User (we get a TOKEN and UserId)
  	
-      "email":"sergey3@test.com",
+      	    "email":"sergey3@test.com",
 	    "password":"123456"
     
   * (GET) /users/{userId}                              #to get User's info (we must add TOKEN in header)
   
-      key:Authorization, TOKEN:Bearer...
+      	     key:Authorization, TOKEN:Bearer...
   
   * (GET) /accounts/{accountNumber}/users/{userId}     #to get the PrimaryAccount's info of the user (we must add the TOKEN in the header)
   
-      key:Authorization, TOKEN:Bearer...
+      	    key:Authorization, TOKEN:Bearer...
   
   * (POST) /accounts/deposit                           #to deposit an amount in the User's PrimaryAccount ((we must add the TOKEN in the header)
     
-    	"userId":"8Kh6k9nBH2WiBaCer99fRPLECV8RkI",
+    	    "userId":"8Kh6k9nBH2WiBaCer99fRPLECV8RkI",
 	    "accountNumber":"11223146",
 	    "amount":"542.21",
 	    "description":"TX 45L"
       
   * (POST) /accounts/withdraw                           #to withdraw an amount in the User's PrimaryAccount ((we must add the TOKEN in the header) (There is a withdrawal's limit of 400)
   
-      "userId":"8Kh6k9nBH2WiBaCer99fRPLECV8RkI",
+      	    "userId":"8Kh6k9nBH2WiBaCer99fRPLECV8RkI",
 	    "accountNumber":"11223146",
 	    "amount":"25.3",
 	    "description":"TX 45L"
