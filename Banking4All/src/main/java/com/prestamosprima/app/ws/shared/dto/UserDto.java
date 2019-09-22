@@ -2,6 +2,8 @@ package com.prestamosprima.app.ws.shared.dto;
 
 import java.io.Serializable;
 
+import com.prestamosprima.app.ws.io.entity.PrimaryAccountEntity;
+
 public class UserDto implements Serializable {
 
 	/**
@@ -16,6 +18,7 @@ public class UserDto implements Serializable {
 	private String email;
 	private String password;
 	private String encryptedPassword;
+	private Integer accountNumber;
 
 	public long getId() {
 		return id;
@@ -72,5 +75,17 @@ public class UserDto implements Serializable {
 	public void setEncryptedPassword(String encryptedPassword) {
 		this.encryptedPassword = encryptedPassword;
 	}
+
+	public Integer getAccountNumber() {
+		return accountNumber;
+	}
+
+	public void setAccountNumber(Integer accountNumber) {
+		this.accountNumber = accountNumber;
+	}
+
+
+
+
 
 }

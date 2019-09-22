@@ -2,10 +2,14 @@ package com.prestamosprima.app.ws.io.entity;
 
 import java.io.Serializable;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 import javax.validation.constraints.Email;
 
 @Entity
@@ -31,6 +35,9 @@ public class UserEntity implements Serializable {
 	private String email;
 	@Column(nullable = false)
 	private String encryptedPassword;
+
+	@OneToOne(mappedBy = "user")
+    private PrimaryAccountEntity account;
 
 	public Long getId() {
 		return id;
@@ -78,6 +85,14 @@ public class UserEntity implements Serializable {
 
 	public void setEncryptedPassword(String encryptedPassword) {
 		this.encryptedPassword = encryptedPassword;
+	}
+	
+    public PrimaryAccountEntity getAccount() {
+		return account;
+	}
+
+	public void setAccount(PrimaryAccountEntity account) {
+		this.account = account;
 	}
 
 }

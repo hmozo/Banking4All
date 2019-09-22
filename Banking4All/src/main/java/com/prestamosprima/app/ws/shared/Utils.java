@@ -1,5 +1,6 @@
 package com.prestamosprima.app.ws.shared;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -30,6 +31,7 @@ public class Utils {
 	private final int ITERATIONS= 10000;
 	private final int KEY_LENGTH= 256;
 	private final int saltRounds= 10;
+	public static final BigDecimal OVERDRAFT_STANDARD= new BigDecimal(400);
 	
 	public String encode(String password) throws NoSuchAlgorithmException, InvalidKeySpecException {
 		

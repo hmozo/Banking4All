@@ -22,8 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.prestamosprima.app.ws.security.service.AuthenticationService;
 import com.prestamosprima.app.ws.security.service.AuthorizationService;
+import com.prestamosprima.app.ws.service.AccountService;
 import com.prestamosprima.app.ws.service.UserService;
 import com.prestamosprima.app.ws.shared.Utils;
+import com.prestamosprima.app.ws.shared.dto.AccountDto;
 import com.prestamosprima.app.ws.shared.dto.UserDto;
 import com.prestamosprima.app.ws.ui.model.request.UserDetailsRequestModel;
 import com.prestamosprima.app.ws.ui.model.request.UserLoginRequestModel;
@@ -37,13 +39,14 @@ public class UserController {
 	private static Logger log = LoggerFactory.getLogger(UserController.class);
 
 	@Autowired
-	UserService userService;
-
-	@Autowired
 	AuthenticationService authenticationService;
 
 	@Autowired
 	AuthorizationService authorizationService;
+	
+	@Autowired
+	UserService userService;
+	
 
 	// get User data
 	@GetMapping(path = "/{userId}")
@@ -65,21 +68,22 @@ public class UserController {
 		return resultRest;
 	}
 
-	// create User
+	// create User (and the PrimaryAccount automatically)
 	@PostMapping
-	public ResultRest createUser(@Validated() @RequestBody UserDetailsRequestModel userDetails) {
+	public ResultRest createUser(@Validated() @RequestBody UserDetailsRequestModel userDetailsRequest) {
 		ResultRest resultRest= new ResultRest();
 		UserRest userRest = new UserRest();
 
 		UserDto userDto = new UserDto();
-		BeanUtils.copyProperties(userDetails, userDto);
+		BeanUtils.copyProperties(userDetailsRequest, userDto);
 
 		log.debug("Creating User");
-		UserDto createdUser = userService.createUser(userDto);
-		BeanUtils.copyProperties(createdUser, userRest);
+		UserDto createdUserDto = userService.createUserAndAccount(userDto);
+		BeanUtils.copyProperties(createdUserDto, userRest);
 		
 		resultRest.setData(userRest);
 		resultRest.setStatus(Response.SC_OK);
+		resultRest.setMessages("User " + userRest.getUserId() + " created");
 		return resultRest;
 	}
 
@@ -87,9 +91,11 @@ public class UserController {
 	@PostMapping("login")
 	public ResultRest login(@Validated() @RequestBody UserLoginRequestModel userLogin, HttpServletResponse response) {
 		ResultRest resultRest= new ResultRest();
+		log.debug("validating login");
 		// authenticate User
 		if (authenticationService.isUserAuthenticated(userLogin, response)){
 			resultRest.setStatus(Response.SC_OK);
+			resultRest.setMessages("User authenticated");
 		}else {
 			resultRest.setStatus(Response.SC_FORBIDDEN);
 			resultRest.setMessages("User not authenticated");
